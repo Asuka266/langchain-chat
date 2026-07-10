@@ -1,0 +1,26 @@
+# pyproject.toml —— langchain-chat 项目配置文件
+
+# [project] 项目本身的信息与依赖（PEP 621 标准段）
+[project]
+name = "langchain-chat"                       # 项目名，也是包名
+version = "0.1.0"                             # 语义化版本：主版本.次版本.修订号
+description = "基于 LangChain 的多轮会话系统（教学项目）"
+readme = "README.md"                          # 指向 README 文件
+requires-python = ">=3.10,<3.13"              # 关键：锁定 Python 版本范围
+                                              #   >=3.10：需求文档要求最低 3.10
+                                              #   <3.13 ：本项目约定使用 3.12，强制锁定
+dependencies = []                             # Step 1 阶段无第三方依赖
+
+# [tool.uv] uv 专属配置
+[tool.uv]
+package = false                               # 本阶段不是可安装包，而是脚本集合
+
+# [tool.ruff] ruff 配置（代码格式化与 Lint）
+[tool.ruff]
+line-length = 100                             # 每行最多 100 字符
+target-version = "py310"                      # ruff 按 Python 3.10 语法检查
+
+# [tool.pytest.ini_options] pytest 配置（Step 13 单元测试启用）
+[tool.pytest.ini_options]
+asyncio_mode = "auto"                         # 自动识别异步测试函数
+testpaths = ["tests"]                         # 测试文件查找目录
