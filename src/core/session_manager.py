@@ -188,3 +188,16 @@ class SessionManager:
             raise ValueError(f"会话 id={session_id} 不存在")
 
         await self.backend.delete_session(session_id)
+
+    # ── 搜索与记录查看（Step 9 新增）─────────────────────────────────────
+
+    async def search_messages(self, user_id: int, keyword: str) -> list[Message]:
+        """在指定用户的所有会话中按关键词搜索消息（E1 对话搜索）。"""
+        if not keyword or not keyword.strip():
+            return []
+        keyword = keyword.strip()
+        return await self.backend.search_messages(user_id, keyword)
+
+    async def get_session_messages(self, session_id: int) -> list[Message]:
+        """获取指定会话的全部消息（用于查看会话记录）。"""
+        return await self.backend.list_messages(session_id)

@@ -186,7 +186,7 @@ async def _create_new_session(app):
     # 创建会话
     session = await app.session_manager.create_session(
         user_id=app.current_user.id,
-        model_name=app.config.default_model,
+        model_name=app.config.secret.MODEL_NAME,
         preset_id=preset_id,
     )
     widgets.print_success(f"新会话已创建（id={session.id}）")
