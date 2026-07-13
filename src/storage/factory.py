@@ -34,8 +34,17 @@ class StorageFactory:
             from storage.sqlite_backend import SQLiteBackend
             return SQLiteBackend()
         elif storage_type == "mysql":
-            # MySQL 后端在 Step 11 实现
-            raise NotImplementedError("MySQL 后端将在 Step 11 实现")
+            from storage.mysql_backend import MySQLBackend
+            from core.config_manager import get_config
+            cfg = get_config()
+            mysql_cfg = cfg.get("storage", "mysql", default={})
+            return MySQLBackend(
+                host=mysql_cfg.get("host", "localhost"),
+                port=mysql_cfg.get("port", 3306),
+                user=mysql_cfg.get("user", "root"),
+                password=cfg.get_api_key("MYSQL_PASSWORD") or mysql_cfg.get("password", ""),
+                database=mysql_cfg.get("database", "langchain_chat"),
+            )
         elif storage_type == "file":
             # File 后端在 Step 12 实现
             raise NotImplementedError("File 后端将在 Step 12 实现")
