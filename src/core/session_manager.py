@@ -201,3 +201,45 @@ class SessionManager:
     async def get_session_messages(self, session_id: int) -> list[Message]:
         """获取指定会话的全部消息（用于查看会话记录）。"""
         return await self.backend.list_messages(session_id)
+
+    async def update_session_model(self, session: Session, model_name: str) -> None:
+        """更新会话使用的模型名（A5 会话内模型切换时使用）。"""
+        session.model_name = model_name
+        await self.backend.update_session(session)
+
+    # ── 导出（Step 10 新增）─────────────────────────────────────────────
+
+    async def export_to_markdown(self, session_id: int, username: str) -> str:
+        """把指定会话导出为 Markdown 文件（F1/F2）。"""
+        from datetime import datetime
+        from pathlib import Path
+
+        session = await self.backend.get_session(session_id)
+        if session is None:
+            raise ValueError(f"会话 id={session_id} 不存在")
+
+        messages = await self.backend.list_messages(session_id)
+
+        lines = []
+        lines.append(f"# {session.title}\n")
+        lines.append(f"> 模型: {session.model_name} | 导出时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+        lines.append("---\n")
+        for msg in messages:
+            if msg.role == "human":
+                lines.append(f"**用户**: {msg.content}\n")
+            elif msg.role == "ai":
+                lines.append(f"**AI**: {msg.content}\n")
+            else:
+                lines.append(f"**系统**: {msg.content}\n")
+        lines.append("---\n")
+        total_tokens = session.total_prompt_tokens + session.total_completion_tokens
+        lines.append(f"> 共 {len(messages)} 条消息 | Token: 输入 {session.total_prompt_tokens}，输出 {session.total_completion_tokens}，总计 {total_tokens}\n")
+
+        safe_title = "".join(c for c in session.title if c not in r'\/:*?"<>|')[:30]
+        date_str = datetime.now().strftime("%Y%m%d")
+        export_dir = Path("data/users") / username / "exports"
+        export_dir.mkdir(parents=True, exist_ok=True)
+        file_path = export_dir / f"{safe_title}_{date_str}.md"
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+        return str(file_path)

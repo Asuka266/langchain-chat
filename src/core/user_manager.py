@@ -67,3 +67,7 @@ class UserManager:
     async def user_exists(self, username: str) -> bool:
         """判断用户名是否存在。"""
         return await self.get_user(username) is not None
+
+    async def update_user(self, user: User) -> None:
+        """更新用户信息（如 default_model）。"""
+        await self.backend.update_user(user)
