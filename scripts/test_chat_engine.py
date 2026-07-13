@@ -16,6 +16,10 @@ from pathlib import Path
 # 将 src 目录加入模块搜索路径
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+# Windows CMD 默认 GBK 无法输出 emoji 等 Unicode 字符，设置 UTF-8 + 容错替换
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from core.chat_engine import ChatEngine
