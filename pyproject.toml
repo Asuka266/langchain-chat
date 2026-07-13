@@ -9,7 +9,14 @@ readme = "README.md"                          # 指向 README 文件
 requires-python = ">=3.10,<3.13"              # 关键：锁定 Python 版本范围
                                               #   >=3.10：需求文档要求最低 3.10
                                               #   <3.13 ：本项目约定使用 3.12，强制锁定
-dependencies = []                             # Step 1 阶段无第三方依赖
+dependencies = [
+    "prompt-toolkit>=3.0.52",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+]                             # Step 1 阶段无第三方依赖
 
 # [tool.uv] uv 专属配置
 [tool.uv]
