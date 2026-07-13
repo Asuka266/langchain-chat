@@ -112,3 +112,33 @@ def read_text(prompt_text: str, default: str = "") -> str:
         return raw if raw else default
     else:
         return input(f"{prompt_text}: ").strip()
+
+
+async def read_chat_input(session=None) -> str:
+    """读取对话输入（使用 prompt_toolkit 异步版本，支持输入历史）。
+
+    参数：
+        session: PromptSession 实例（含历史记录）。首次调用传 None，会自动创建。
+    返回：
+        用户输入的文本（已去除首尾空白）
+    """
+    # 如果已有 session，说明之前创建成功过，继续用
+    if session is not None:
+        try:
+            raw = await session.prompt_async("> ")
+            return raw.strip()
+        except (EOFError, KeyboardInterrupt):
+            return "/exit"
+
+    # 首次调用：尝试创建 PromptSession
+    try:
+        from prompt_toolkit import PromptSession
+        from prompt_toolkit.history import InMemoryHistory
+        session = PromptSession(history=InMemoryHistory())
+        raw = await session.prompt_async("> ")
+        return raw.strip()
+    except Exception:
+        # prompt_toolkit 在非 Windows Console 环境（如 Git Bash、重定向）
+        # 可能无法创建，回退到标准 input()
+        raw = input("> ")
+        return raw.strip()
