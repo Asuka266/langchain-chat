@@ -11,8 +11,12 @@
 
 from typing import Optional
 
+import logging
+
 from models.schemas import User
 from storage.base import StorageBackend
+
+logger = logging.getLogger(__name__)
 
 
 class UserManager:
@@ -50,6 +54,7 @@ class UserManager:
 
         # 创建
         user = User(id=0, username=username, default_model=default_model)
+        logger.info("创建用户: %s", username)
         return await self.backend.create_user(user)
 
     async def get_user(self, username: str) -> Optional[User]:

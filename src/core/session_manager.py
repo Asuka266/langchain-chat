@@ -13,8 +13,12 @@ from typing import Optional
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
+import logging
+
 from core.config_manager import AppConfig
 from models.schemas import Message, Session
+
+logger = logging.getLogger(__name__)
 from storage.base import StorageBackend
 
 
@@ -55,6 +59,7 @@ class SessionManager:
             model_name=model_name,
             preset_id=preset_id,
         )
+        logger.info("创建会话: 用户=%d, 模型=%s", user_id, model_name)
         return await self.backend.create_session(session)
 
     async def add_message(

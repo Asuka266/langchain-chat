@@ -47,6 +47,10 @@ class StorageFactory:
             )
         elif storage_type == "file":
             # File 后端在 Step 12 实现
-            raise NotImplementedError("File 后端将在 Step 12 实现")
+            from storage.file_backend import FileBackend
+            from core.config_manager import get_config
+            cfg = get_config()
+            file_cfg = cfg.get("storage", "file", default={})
+            return FileBackend(base_path=file_cfg.get("path", "data/filestore"))
         else:
             raise ValueError(f"不支持的存储类型: {storage_type}（可选: sqlite/mysql/file）")

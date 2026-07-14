@@ -6,8 +6,12 @@ Step 10 重构：支持多服务商模型切换（switch_model）。
 
 from typing import AsyncIterator, Optional
 
+import logging
+
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_openai import ChatOpenAI
+
+logger = logging.getLogger(__name__)
 
 from core.config_manager import AppConfig
 
@@ -45,6 +49,7 @@ class ChatEngine:
         """切换模型（A5）。"""
         self.llm = self._create_llm(model_value)
         self.current_model = model_value
+        logger.info("模型切换: -> %s", model_value)
 
     def chat(self, messages: list[BaseMessage]) -> tuple[str, dict]:
         response: AIMessage = self.llm.invoke(messages)

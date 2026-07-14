@@ -1,5 +1,6 @@
 # config/logging.yaml —— 日志配置
-# 加载方式（Step 12 实现）：
+version: 1
+# 加载方式：
 #   logging.config.dictConfig(yaml.safe_load(open("config/logging.yaml")))
 
 formatters:
