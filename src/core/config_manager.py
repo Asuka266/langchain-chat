@@ -118,6 +118,16 @@ class AppConfig:
         return self._yaml_config.get("storage", {}).get("type", "sqlite")
 
     @property
+    def max_input_length(self) -> int:
+        """用户单次输入最大字符数。"""
+        return self._yaml_config.get("security", {}).get("max_input_length", 5000)
+
+    @property
+    def context_max_tokens(self) -> int:
+        """发送给 LLM 的上下文最大 Token 数。"""
+        return self._yaml_config.get("security", {}).get("context_max_tokens", 4000)
+
+    @property
     def llm_timeout(self) -> int:
         return self._yaml_config.get("llm", {}).get("timeout", 30)
 

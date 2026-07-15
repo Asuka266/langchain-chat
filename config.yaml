@@ -10,7 +10,7 @@
 app:
   name: langchain-chat
   version: 0.1.0
-  current_step: "Step 15  多环境区分"
+  current_step: "Step 16a  安全加固"
   # env: dev   # 多环境预留，Step 15 启用
 
 # 模型服务商配置（多服务商分组）
@@ -64,6 +64,11 @@ storage:
     # password 从 .env 的 MYSQL_PASSWORD 读取
   file:
     path: data/filestore
+
+# 安全配置（Step 16 新增）
+security:
+  max_input_length: 5000        # 用户单次输入最大字符数
+  context_max_tokens: 4000      # 发送给 LLM 的上下文最大 Token 数
 
 # LLM 调用参数（需求 G1 超时与重试）
 llm:

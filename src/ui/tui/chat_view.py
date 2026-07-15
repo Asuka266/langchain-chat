@@ -120,6 +120,12 @@ async def start_chat(app) -> None:
             continue
 
         # 普通对话：发送给 LLM
+        # 输入长度检查（防止超长文本超出 Token 限制）
+        max_input = app.config.max_input_length
+        if len(user_input) > max_input:
+            widgets.print_warning(f"输入过长（{len(user_input)} 字符），最大允许 {max_input} 字符")
+            continue
+
         # 把用户输入加入内存历史
         user_msg = HumanMessage(content=user_input)
         messages.append(user_msg)
@@ -133,7 +139,9 @@ async def start_chat(app) -> None:
         final_usage = None
 
         try:
-            async for text, usage in app.engine.astream(messages):
+            # 上下文裁剪（防止超出模型 Token 限制）
+            trimmed = app.engine.trim_messages(messages)
+            async for text, usage in app.engine.astream(trimmed):
                 if text:
                     widgets.console.print(text, end="", style="green")
                     full_reply += text
