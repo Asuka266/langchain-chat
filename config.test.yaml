@@ -1,0 +1,9 @@
+# config.test.yaml —— 测试环境覆盖配置
+#
+# 合并规则：最终配置 = config.yaml（基础）+ config.test.yaml（覆盖）
+# 测试环境特点：SQLite（独立测试库）、日志 WARNING（减少噪音）
+
+storage:
+  type: sqlite
+  sqlite:
+    path: data/sqlite/test.db

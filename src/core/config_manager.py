@@ -1,12 +1,16 @@
 """配置加载与管理。
 
-本模块负责读取并合并两个配置源：
+本模块负责读取并合并多个配置源：
     1. .env 文件：各服务商的 API Key、默认模型名。
-    2. config.yaml 文件：服务商分组配置、生成参数、存储配置等。
+    2. config.yaml 文件：基础业务配置（所有环境共享）。
+    3. config.{APP_ENV}.yaml 文件：环境覆盖配置（Step 15 多环境区分）。
 
-Step 10 重构：从单一服务商改为多服务商分组（providers 结构）。
+合并规则（Step 15）：
+    最终配置 = config.yaml（基础） + config.{APP_ENV}.yaml（环境覆盖）
+    环境覆盖文件只写「与基础配置不同的字段」，合并时深度覆盖。
 """
 
+import copy
 import os
 from pathlib import Path
 from typing import Any, Optional
@@ -16,47 +20,64 @@ from dotenv import load_dotenv
 
 
 def _load_env():
-    """加载 .env 文件到环境变量。"""
+    """加载 .env 文件到环境变量。
+
+    Step 15 多环境：根据 APP_ENV 加载对应的 .env 文件。
+    """
     env_path = Path(".env")
     if env_path.exists():
         load_dotenv(env_path, override=True)
+
+    app_env = os.environ.get("APP_ENV", "dev")
+
+    env_specific = Path(f".env.{app_env}")
+    if env_specific.exists():
+        load_dotenv(env_specific, override=True)
 
 
 _load_env()
 
 
 def get_config_value(env_key: str, default: str = "") -> str:
-    """从环境变量读取配置值。"""
     return os.environ.get(env_key, default)
+
+
+def _deep_merge(base: dict, override: dict) -> dict:
+    """深度合并两个字典。对于嵌套字典递归合并，非字典值覆盖。"""
+    result = copy.deepcopy(base)
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = copy.deepcopy(value)
+    return result
 
 
 class AppConfig:
     """应用配置（单例）。"""
 
     def __init__(self) -> None:
-        self._yaml_config: dict[str, Any] = self._load_yaml("config.yaml")
+        self.app_env: str = os.environ.get("APP_ENV", "dev")
+
+        base_config = self._load_yaml("config.yaml")
+        env_config_file = f"config.{self.app_env}.yaml"
+        env_config = self._load_yaml(env_config_file)
+        self._yaml_config: dict[str, Any] = _deep_merge(base_config, env_config)
 
     def _load_yaml(self, filename: str) -> dict[str, Any]:
         path = Path(filename)
         if not path.exists():
-            print(f"[配置警告] 配置文件 {filename} 不存在，使用空配置")
             return {}
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         return data if isinstance(data, dict) else {}
 
-    # ── 敏感配置（从 .env 读取）─────────────────────────────────────────
-
     @property
     def default_model(self) -> str:
-        """默认模型名（从 .env 的 DEFAULT_MODEL 读取）。"""
         return get_config_value("DEFAULT_MODEL", "deepseek-chat")
 
     def get_api_key(self, env_key: str) -> str:
-        """按变量名从 .env 读取 API Key。"""
         return get_config_value(env_key, "")
-
-    # ── 服务商配置 ─────────────────────────────────────────────────────
 
     @property
     def providers(self) -> list[dict]:
@@ -80,8 +101,6 @@ class AppConfig:
                     return provider
         return None
 
-    # ── 生成参数 ───────────────────────────────────────────────────────
-
     @property
     def temperature(self) -> float:
         return self._yaml_config.get("temperature", 0.7)
@@ -89,8 +108,6 @@ class AppConfig:
     @property
     def max_tokens(self) -> int:
         return self._yaml_config.get("max_tokens", 2048)
-
-    # ── 其他配置 ──────────────────────────────────────────────────────
 
     @property
     def current_step(self) -> str:
