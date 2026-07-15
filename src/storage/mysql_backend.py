@@ -207,10 +207,15 @@ class MySQLBackend(StorageBackend):
             row = await cur.fetchone()
             return self._row_to_session(row) if row else None
 
-    async def list_sessions(self, user_id: int) -> list[Session]:
+    async def list_sessions(self, user_id: int, limit: int = 0, offset: int = 0) -> list[Session]:
         async with self._cursor() as cur:
-            await cur.execute(
-                "SELECT * FROM sessions WHERE user_id = %s ORDER BY id DESC", (user_id,))
+            if limit > 0:
+                await cur.execute(
+                    "SELECT * FROM sessions WHERE user_id = %s ORDER BY id DESC LIMIT %s OFFSET %s",
+                    (user_id, limit, offset))
+            else:
+                await cur.execute(
+                    "SELECT * FROM sessions WHERE user_id = %s ORDER BY id DESC", (user_id,))
             rows = await cur.fetchall()
             return [self._row_to_session(r) for r in rows]
 

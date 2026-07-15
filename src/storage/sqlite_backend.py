@@ -199,10 +199,13 @@ class SQLiteBackend(StorageBackend):
             row = await cursor.fetchone()
             return self._row_to_session(row) if row else None
 
-    async def list_sessions(self, user_id: int) -> list[Session]:
-        async with self._conn.execute(
-            "SELECT * FROM sessions WHERE user_id = ? ORDER BY id DESC", (user_id,)
-        ) as cursor:
+    async def list_sessions(self, user_id: int, limit: int = 0, offset: int = 0) -> list[Session]:
+        sql = "SELECT * FROM sessions WHERE user_id = ? ORDER BY id DESC"
+        params: list = [user_id]
+        if limit > 0:
+            sql += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+        async with self._conn.execute(sql, tuple(params)) as cursor:
             rows = await cursor.fetchall()
             return [self._row_to_session(r) for r in rows]
 

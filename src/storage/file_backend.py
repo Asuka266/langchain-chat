@@ -146,10 +146,13 @@ class FileBackend(StorageBackend):
                 return self._row_to_session(r)
         return None
 
-    async def list_sessions(self, user_id: int) -> list[Session]:
+    async def list_sessions(self, user_id: int, limit: int = 0, offset: int = 0) -> list[Session]:
         records = self._read_json(self._file("sessions"))
         filtered = [r for r in records if r["user_id"] == user_id]
-        return [self._row_to_session(r) for r in sorted(filtered, key=lambda x: x["id"], reverse=True)]
+        result = [self._row_to_session(r) for r in sorted(filtered, key=lambda x: x["id"], reverse=True)]
+        if limit > 0:
+            return result[offset:offset + limit]
+        return result
 
     async def update_session(self, session: Session) -> None:
         session.updated_at = datetime.now(timezone.utc)

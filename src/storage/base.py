@@ -75,8 +75,8 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    async def list_sessions(self, user_id: int) -> list[Session]:
-        """列出指定用户的所有会话。"""
+    async def list_sessions(self, user_id: int, limit: int = 0, offset: int = 0) -> list[Session]:
+        """列出指定用户的会话（支持分页）。limit=0 返回全部。"""
         ...
 
     @abstractmethod

@@ -489,28 +489,42 @@ class TUIApp(AbstractUI):
                 await self._export_session()
 
     async def _list_sessions(self) -> None:
-        """查看会话列表（C3）。"""
+        """查看会话列表（C3，支持分页）。"""
         if not self._require_login():
             return
 
-        sessions = await self.session_manager.list_sessions(self.current_user.id)
-        if not sessions:
-            widgets.print_info("目前没有任何会话")
-            return
+        page_size = 10
+        offset = 0
 
-        widgets.console.print("\n[bold]会话列表[/bold]")
-        for i, s in enumerate(sessions, start=1):
-            mark = " <- 当前" if (self.current_session and s.id == self.current_session.id) else ""
-            created = s.created_at.strftime("%Y-%m-%d %H:%M")
-            updated = s.updated_at.strftime("%Y-%m-%d %H:%M")
-            total_tokens = s.total_prompt_tokens + s.total_completion_tokens
-            widgets.console.print(
-                f"  {i}. [cyan]{s.title}[/cyan]{mark}"
-            )
-            widgets.console.print(
-                f"     模型: {s.model_name}  |  创建: {created}  |  更新: {updated}  |  Token: {total_tokens}"
-            )
-        widgets.print_info(f"共 {len(sessions)} 个会话")
+        while True:
+            sessions = await self.session_manager.list_sessions(
+                self.current_user.id, limit=page_size, offset=offset)
+            if not sessions and offset == 0:
+                widgets.print_info("目前没有任何会话")
+                return
+            if not sessions:
+                widgets.print_info("没有更多会话了")
+                return
+
+            page_num = offset // page_size + 1
+            widgets.console.print(f"\n[bold]会话列表（第 {page_num} 页）[/bold]")
+            for i, s in enumerate(sessions, start=offset + 1):
+                mark = " <- 当前" if (self.current_session and s.id == self.current_session.id) else ""
+                created = s.created_at.strftime("%Y-%m-%d %H:%M")
+                updated = s.updated_at.strftime("%Y-%m-%d %H:%M")
+                total_tokens = s.total_prompt_tokens + s.total_completion_tokens
+                widgets.console.print(f"  {i}. [cyan]{s.title}[/cyan]{mark}")
+                widgets.console.print(
+                    f"     模型: {s.model_name}  |  创建: {created}  |  更新: {updated}  |  Token: {total_tokens}"
+                )
+            widgets.print_info(f"本页 {len(sessions)} 条（第 {page_num} 页，每页 {page_size} 条）")
+
+            if len(sessions) < page_size:
+                return
+            choice_str = widgets.read_text("输入 n 看下一页，或其他键返回")
+            if choice_str.lower() != "n":
+                return
+            offset += page_size
 
     async def _load_session(self) -> None:
         """加载会话（设为当前会话，C2）。"""

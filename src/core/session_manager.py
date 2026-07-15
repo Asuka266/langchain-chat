@@ -155,12 +155,9 @@ class SessionManager:
 
     # ── 会话管理（Step 8 新增）──────────────────────────────────────────
 
-    async def list_sessions(self, user_id: int) -> list[Session]:
-        """列出指定用户的所有会话（C3 会话列表）。
-
-        按更新时间倒序排列（最近更新的在最前面）。
-        """
-        return await self.backend.list_sessions(user_id)
+    async def list_sessions(self, user_id: int, limit: int = 0, offset: int = 0) -> list[Session]:
+        """列出指定用户的会话（C3，支持分页）。limit=0 返回全部。"""
+        return await self.backend.list_sessions(user_id, limit=limit, offset=offset)
 
     async def get_session(self, session_id: int) -> Optional[Session]:
         """按 ID 查询单个会话（C2 加载历史会话）。不存在返回 None。"""
