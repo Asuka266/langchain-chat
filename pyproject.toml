@@ -35,3 +35,10 @@ target-version = "py310"                      # ruff 按 Python 3.10 语法检�
 [tool.pytest.ini_options]
 asyncio_mode = "auto"                         # 自动识别异步测试函数
 testpaths = ["tests"]                         # 测试文件查找目录
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+]
