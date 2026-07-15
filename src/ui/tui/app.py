@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 from core.session_manager import SessionManager
 from core.user_manager import UserManager
 from interface.ui_protocol import AbstractUI
-from storage.factory import StorageFactory
 from ui.tui import menu_view, widgets
 from ui.tui.chat_view import start_chat
 
